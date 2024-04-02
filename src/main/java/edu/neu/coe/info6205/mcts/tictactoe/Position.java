@@ -60,12 +60,12 @@ public class Position {
         if (player == last) throw new RuntimeException("consecutive moves by same player: " + player);
         int[][] matrix = copyGrid();
         if (matrix[x][y] < 0) {
-            matrix[x][y] = player;// TO BE IMPLEMENTED
+            matrix[x][y] = player;
             return new Position(matrix, count + 1, player);
         } else {
             throw new RuntimeException("Position is occupied: " + x + ", " + y);
         }
-            // END SOLUTION
+            
     }
 
     /**
@@ -80,9 +80,7 @@ public class Position {
             for (int j = 0; j < gridSize; j++)
                 if (grid[i][j] < 0)
                     result.add(new int[]{i, j});
-    // TO BE IMPLEMENTED
-
-        // END SOLUTION
+    
         return result;
     }
 
@@ -142,14 +140,12 @@ public class Position {
      * @return true if there are three cells in a line that are the same and equal to the last player.
      */
     boolean threeInARow() {
-        // Check rows and columns for a win
         for (int i = 0; i < gridSize; i++) {
             if ((grid[i][0] == grid[i][1] && grid[i][1] == grid[i][2] && grid[i][0] != -1) ||
                     (grid[0][i] == grid[1][i] && grid[1][i] == grid[2][i] && grid[0][i] != -1)) {
                 return true;
             }
         }
-        // Check diagonals for a win
         if ((grid[0][0] == grid[1][1] && grid[1][1] == grid[2][2] && grid[0][0] != -1) ||
                 (grid[0][2] == grid[1][1] && grid[1][1] == grid[2][0] && grid[0][2] != -1)) {
             return true;
