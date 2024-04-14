@@ -4,16 +4,9 @@ import edu.neu.coe.info6205.mcts.core.Move;
 import edu.neu.coe.info6205.mcts.core.Node;
 import edu.neu.coe.info6205.mcts.core.State;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
-/**
- * Class to represent a Monte Carlo Tree Search for TicTacToe.
- */
 public class MCTS {
-
     private final Node<TicTacToe> root;
     private final Random random = new Random();
     private static final double EXPLORATION_CONSTANT = Math.sqrt(2);
@@ -65,9 +58,9 @@ public class MCTS {
 
     private Node<TicTacToe> expand(Node<TicTacToe> node) {
         List<Move<TicTacToe>> moves = new ArrayList<>(node.state().moves(node.state().player()));
-        Move<TicTacToe> move = moves.get(random.nextInt(moves.size()));
-        State<TicTacToe> newState = node.state().next(move);
-
+        // Improve strategy: prefer center or strategic moves
+        Move<TicTacToe> selectedMove = moves.get(random.nextInt(moves.size())); // Placeholder for strategic move selection
+        State<TicTacToe> newState = node.state().next(selectedMove);
         Node<TicTacToe> newNode = new TicTacToeNode(newState, node);
         node.children().add(newNode);
         return newNode;
@@ -75,26 +68,22 @@ public class MCTS {
 
     private int simulate(State<TicTacToe> state) {
         State<TicTacToe> tempState = state;
-        Random localRandom = new Random();
         while (!tempState.isTerminal()) {
-            List<Move<TicTacToe>> possibleMoves = new ArrayList<>(tempState.moves(tempState.player()));
-            if (possibleMoves.isEmpty()) {
-                break;
-            }
-            Move<TicTacToe> selectedMove = possibleMoves.get(localRandom.nextInt(possibleMoves.size()));
+            List<Move<TicTacToe>> moves = new ArrayList<>(tempState.moves(tempState.player()));
+            Move<TicTacToe> selectedMove = moves.get(random.nextInt(moves.size()));
             tempState = tempState.next(selectedMove);
         }
         return tempState.winner().orElse(-1);
     }
 
-
     private void backPropagate(Node<TicTacToe> node, int result) {
-        while (node != null) {
-            node.incrementPlayouts();
-            if (result != -1 && node.state().player() == result) {
-                node.addWins(1);  // Assumes 1 point per win
+        Node<TicTacToe> tempNode = node;
+        while (tempNode != null) {
+            tempNode.incrementPlayouts();
+            if (result == tempNode.state().player()) {
+                tempNode.addWins(1);
             }
-            node = node.getParent();
+            tempNode = tempNode.getParent();
         }
     }
 
@@ -106,20 +95,22 @@ public class MCTS {
 
     public static void main(String[] args) {
         TicTacToe game = new TicTacToe();
-        Node<TicTacToe> root = new TicTacToeNode(game.start(), null);
-        MCTS mcts = new MCTS(root);
-        Node<TicTacToe> bestNode = mcts.runMCTS(1000);
+        Node<TicTacToe> currentNode = new TicTacToeNode(game.start(), null);
+        MCTS mcts = new MCTS(currentNode);
 
+        while (!currentNode.state().isTerminal()) {
+            currentNode = mcts.runMCTS(1000);
+            System.out.println("Current Board State:");
+            System.out.println(currentNode.state());
+            System.out.println("Win Probability: " + currentNode.wins() / (double) currentNode.playouts());
+            mcts = new MCTS(currentNode);  // Reset the MCTS with the new root
+        }
 
-        System.out.println("Initial Board State:");
-        System.out.println(root.state());
-
-
-        System.out.println("\nBest node state after 1000 simulations:");
-        System.out.println(bestNode.state());
-
-
-        double winRate = bestNode.wins() / (double) bestNode.playouts() * 100;
-        System.out.println("Win rate of best node: " + String.format("%.2f%%", winRate));
+        Optional<Integer> winner = currentNode.state().winner();
+        if (winner.isPresent()) {
+            System.out.println("Game Over. Winner: " + (winner.get() == 1 ? "X" : "O"));
+        } else {
+            System.out.println("Game Over. It's a draw.");
+        }
     }
 }
