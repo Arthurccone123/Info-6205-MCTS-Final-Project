@@ -47,9 +47,10 @@ public class TicTacToeNode implements Node<TicTacToe> {
      *
      * @param state the State for the new chile.
      */
+    @Override
     public void addChild(State<TicTacToe> state) {
-        children.add(new TicTacToeNode(state));
-    }
+        children.add(new TicTacToeNode(state, this));
+    }//updated
 
     /**
      * This method sets the number of wins and playouts according to the children states.
@@ -77,11 +78,15 @@ public class TicTacToeNode implements Node<TicTacToe> {
         return playouts;
     }
 
-    public TicTacToeNode(State<TicTacToe> state) {
+    public TicTacToeNode(State<TicTacToe> state, Node<TicTacToe> parent) {
         this.state = state;
-        children = new ArrayList<>();
-        initializeNodeData();
-    }
+        this.parent = parent;
+        this.children = new ArrayList<>();
+        this.wins = 0;
+        this.playouts = 0;
+        initializeNodeData();  // Call the initialization method here
+    }//updated
+
 
     private void initializeNodeData() {
         if (isLeaf()) {
@@ -93,10 +98,25 @@ public class TicTacToeNode implements Node<TicTacToe> {
                 wins = 1; // a draw.
         }
     }
+    @Override
+    public Node<TicTacToe> getParent() {
+        return parent;
+    }
+
+    @Override
+    public void incrementPlayouts() {
+        this.playouts++;
+    }
+
+    @Override
+    public void addWins(int wins) {
+        this.wins += wins;
+    }
 
 
     private final State<TicTacToe> state;
     private final ArrayList<Node<TicTacToe>> children;
+    private final Node<TicTacToe> parent;
 
     private int wins;
     private int playouts;
