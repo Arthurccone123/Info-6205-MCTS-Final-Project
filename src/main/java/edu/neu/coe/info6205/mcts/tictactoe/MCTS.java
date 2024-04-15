@@ -27,7 +27,7 @@ public class MCTS {
         return bestChild(root);
     }
 
-    private Node<TicTacToe> select(Node<TicTacToe> node) {
+    Node<TicTacToe> select(Node<TicTacToe> node) {
         while (!node.isLeaf()) {
             if (isFullyExpanded(node)) {
                 node = bestUCT(node);
@@ -56,27 +56,42 @@ public class MCTS {
         return (winScore / (double) numVisits) + EXPLORATION_CONSTANT * Math.sqrt(Math.log(totalVisits) / numVisits);
     }
 
-    private Node<TicTacToe> expand(Node<TicTacToe> node) {
+    Node<TicTacToe> expand(Node<TicTacToe> node) {
         List<Move<TicTacToe>> moves = new ArrayList<>(node.state().moves(node.state().player()));
-        // Improve strategy: prefer center or strategic moves
-        Move<TicTacToe> selectedMove = moves.get(random.nextInt(moves.size())); // Placeholder for strategic move selection
+        Move<TicTacToe> selectedMove = selectStrategicMove(moves, node.state());
         State<TicTacToe> newState = node.state().next(selectedMove);
         Node<TicTacToe> newNode = new TicTacToeNode(newState, node);
         node.children().add(newNode);
         return newNode;
     }
 
-    private int simulate(State<TicTacToe> state) {
+    private Move<TicTacToe> selectStrategicMove(List<Move<TicTacToe>> moves, State<TicTacToe> state) {
+
+
+        return moves.stream().max(Comparator.comparing(move -> evaluateMovePotential(move, state))).orElse(null);
+    }
+
+    private double evaluateMovePotential(Move<TicTacToe> move, State<TicTacToe> state) {
+
+        State<TicTacToe> resultState = state.next(move);
+        if (resultState.winner().isPresent() && resultState.winner().get() == state.player()) {
+            return Double.MAX_VALUE;
+        }
+
+        return Math.random();
+    }
+
+    int simulate(State<TicTacToe> state) {
         State<TicTacToe> tempState = state;
         while (!tempState.isTerminal()) {
             List<Move<TicTacToe>> moves = new ArrayList<>(tempState.moves(tempState.player()));
-            Move<TicTacToe> selectedMove = moves.get(random.nextInt(moves.size()));
-            tempState = tempState.next(selectedMove);
+            Move<TicTacToe> randomMove = moves.get(random.nextInt(moves.size()));
+            tempState = tempState.next(randomMove);
         }
         return tempState.winner().orElse(-1);
     }
 
-    private void backPropagate(Node<TicTacToe> node, int result) {
+    void backPropagate(Node<TicTacToe> node, int result) {
         Node<TicTacToe> tempNode = node;
         while (tempNode != null) {
             tempNode.incrementPlayouts();
@@ -103,6 +118,7 @@ public class MCTS {
             System.out.println("Current Board State:");
             System.out.println(currentNode.state());
             System.out.println("Win Probability: " + currentNode.wins() / (double) currentNode.playouts());
+
             mcts = new MCTS(currentNode);  // Reset the MCTS with the new root
         }
 
