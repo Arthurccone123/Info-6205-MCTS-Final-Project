@@ -1,9 +1,8 @@
 package edu.neu.coe.info6205.mcts.nimgame;
 
-/**
- * This class represents a move in the Nim-like game.
- */
-public class NimGameMove {
+import edu.neu.coe.info6205.mcts.core.Move;
+
+public class NimGameMove implements Move<NimGame> {
 
     private final int pileIndex;
     private final int numberOfPieces;
@@ -21,5 +20,9 @@ public class NimGameMove {
         return numberOfPieces;
     }
 
+    @Override
+    public int player() {
 
+        return 1;
+    }
 }
