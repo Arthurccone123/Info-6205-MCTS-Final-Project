@@ -37,7 +37,7 @@ public class NimGameState implements State<NimGame> {
         List<Move<NimGame>> moves = new ArrayList<>();
         for (int i = 0; i < piles.length; i++) {
             for (int numToRemove = 1; numToRemove <= piles[i]; numToRemove++) {
-                moves.add(new NimGameMove(i, numToRemove));
+                moves.add((Move<NimGame>) new NimGameMove(i, numToRemove));
             }
         }
         return moves;
