@@ -1,5 +1,6 @@
 package edu.neu.coe.info6205.mcts.nimgame;
 
+import edu.neu.coe.info6205.mcts.core.Node;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -10,7 +11,7 @@ public class NimGameNodeTest {
     private NimGameState initialState;
 
     @Before
-    public void setUp() {
+   public void setUp() {
         initialState = new NimGameState(new int[]{3, 3, 3});
         node = new NimGameNode(initialState, null);
     }
@@ -38,24 +39,85 @@ public class NimGameNodeTest {
 
     @Test
     public void testBackPropagate() {
-        // Step 1: Set up a simple tree for the test with a clear path to simulate.
-        NimGameState childState = new NimGameState(new int[]{2, 3, 3}); // Create a child state
-        NimGameNode childNode = new NimGameNode(childState, node); // Create a child node with the parent being `node`
-        node.children().add(childNode); // Add the child node to the parent's children
+        NimGameState childState = new NimGameState(new int[]{2, 3, 3});
+        NimGameNode childNode = new NimGameNode(childState, node);
+        node.children().add(childNode);
 
-        // Step 2 & 3: Simulate a game outcome where the child node is the end state and the result is a win.
-        int simulatedResult = 1; // Assuming player 1 is the winner in this simulation
+        int simulatedResult = 1;
 
-        // Step 4: Backpropagate the result from the child node to the root node.
-        childNode.incrementPlayouts(); // Simulate that the child node was part of a play
+        childNode.incrementPlayouts();
         if (simulatedResult == childState.player()) {
-            childNode.addWins(1); // Simulate a win for the child node
+            childNode.addWins(1);
         }
-        node.backPropagate(); // Now call backPropagate on the parent node to update its stats
+        node.backPropagate();
 
-        // Step 5: Assert that the playouts and wins have been updated correctly.
-        assertEquals(1, node.playouts()); // The parent node should have 1 playout now
-        assertEquals(simulatedResult == initialState.player() ? 1 : 0, node.wins()); // The parent node should have 1 win if it represents the winner
+        assertEquals(1, node.playouts());
+        assertEquals(simulatedResult == initialState.player() ? 1 : 0, node.wins());
+    }
+
+    @Test
+    public void testBackPropagateWithMultipleChildren() {
+        // Set up children and simulate their outcomes
+        NimGameNode childNode1 = new NimGameNode(new NimGameState(new int[]{2, 3, 3}), node);
+        NimGameNode childNode2 = new NimGameNode(new NimGameState(new int[]{3, 2, 3}), node);
+        node.children().add(childNode1);
+        node.children().add(childNode2);
+
+        childNode1.incrementPlayouts();
+        childNode2.incrementPlayouts();
+        childNode1.addWins(1); // simulate a win for childNode1
+        node.backPropagate();
+
+        assertEquals(2, node.playouts());
+        assertEquals(1, node.wins());
+    }
+
+    @Test
+    public void testBackPropagateWithDeepTree() {
+        // Set up a tree with multiple levels
+        NimGameNode childNode = new NimGameNode(new NimGameState(new int[]{2, 3, 3}), node);
+        NimGameNode grandChildNode = new NimGameNode(new NimGameState(new int[]{2, 2, 3}), childNode);
+        node.children().add(childNode);
+        childNode.children().add(grandChildNode);
+
+        grandChildNode.incrementPlayouts();
+        grandChildNode.addWins(1); // simulate a win for grandChildNode
+        childNode.backPropagate();
+        node.backPropagate();
+
+        assertEquals(1, node.playouts());
+        assertEquals(1, node.wins()); // Assuming initialState.player() is not the winner
+        assertEquals(1, childNode.wins());
+    }
+
+    @Test
+    public void testIncrementWinsAndPlayouts() {
+        node.incrementPlayouts();
+        node.addWins(1);
+        assertEquals(1, node.wins());
+        assertEquals(1, node.playouts());
+    }
+
+    @Test
+    public void testAddChildCreatesCorrectParentLink() {
+        NimGameState childState = new NimGameState(new int[]{2, 3, 3});
+        node.addChild(childState);
+        Node<NimGame> childNode = node.children().iterator().next();
+        assertEquals(node, childNode.getParent());
+    }
+
+    @Test
+    public void testParentLink() {
+        NimGameNode parentNode = new NimGameNode(new NimGameState(new int[]{3, 3, 3}), null);
+        NimGameNode childNode = new NimGameNode(initialState, parentNode);
+        assertEquals(parentNode, childNode.getParent());
+    }
+
+    @Test
+    public void testWhiteCondition() {
+        // Assuming that the opener is player 0 and player() method returns current player
+        boolean isWhite = node.white();
+        assertEquals(initialState.game().opener() == initialState.player(), isWhite);
     }
 
 // Add more tests as needed to cover all aspects of your
