@@ -28,12 +28,16 @@ public class NimGame implements Game<NimGame> {
 
     public void playMove(NimGameMove move) throws IllegalArgumentException {
         int[] piles = currentState.getPiles();
+        if (move.getNumberOfPieces() <= 0) {
+            throw new IllegalArgumentException("You must remove at least one piece.");
+        }
         if (piles[move.getPileIndex()] >= move.getNumberOfPieces()) {
             currentState = (NimGameState) currentState.next(move);
         } else {
             throw new IllegalArgumentException("Cannot remove more pieces than are present in the pile.");
         }
     }
+
 
     public boolean isGameOver() {
         return currentState.isTerminal();
@@ -71,9 +75,12 @@ public class NimGame implements Game<NimGame> {
             }
 
             if (game.isGameOver()) {
-                System.out.println("Game Over, the last move player is lost!");
+                // 使用 currentPlayer 变量来跟踪当前是谁的回合
+                int losingPlayer = game.getCurrentState().getCurrentPlayer();
+                System.out.println("Game Over! Player " + losingPlayer + " loses.");
                 break;
             }
+
         }
         scanner.close();
     }

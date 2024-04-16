@@ -13,8 +13,15 @@ public class NimGameState implements State<NimGame> {
     private final int[] piles;
     private final Random random = new Random();
 
+    private int currentPlayer; // 添加一个字段来跟踪当前玩家
+
     public NimGameState(int[] piles) {
         this.piles = piles.clone();
+        this.currentPlayer = 0; // 假设玩家0开始游戏
+    }
+
+    public int getCurrentPlayer() {
+        return currentPlayer;
     }
 
     @Override

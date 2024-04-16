@@ -206,7 +206,10 @@ public class MCTS {
             currentPlayer = 1 - currentPlayer;
 
             if (game.isGameOver()) {
-                System.out.println("Game Over! The last player to move loses.");
+                // 使用 currentPlayer 变量来跟踪当前是谁的回合
+                int losingPlayer = game.getCurrentState().getCurrentPlayer();
+                System.out.println("Game Over! Player " + currentPlayer + " win.");
+                break;
             }
 
             mcts = new MCTS(new NimGameNode(game.getCurrentState(), null));
