@@ -134,12 +134,12 @@ public class MCTS {
     }
 
 
-
     public static void main(String[] args) {
-        int mctsWins = 0; // 统计MCTS AI胜利的次数
-        int totalGames = 1000;
+        int totalGames = 5000;
         boolean detailedDisplay = true; // 控制是否显示详细的每一步棋
 
+        // MCTS AI对弈部分
+        int mctsWins = 0; // 统计MCTS AI胜利的次数
         for (int gameCount = 0; gameCount < totalGames; gameCount++) {
             NimGame game = new NimGame();
             Node<NimGame> rootNode = new NimGameNode(game.start(), null);
@@ -147,7 +147,7 @@ public class MCTS {
 
             while (!rootNode.state().isTerminal()) {
                 if (isMctsTurn) {
-                    rootNode = new MCTS(rootNode).runMCTS(1000); // MCTS AI进行决策
+                    rootNode = new MCTS(rootNode).runMCTS(2000); // MCTS AI进行决策
                     if (detailedDisplay) {
                         System.out.println("MCTS AI made a move:");
                         printPiles(((NimGameState)rootNode.state()).getPiles());
@@ -162,27 +162,44 @@ public class MCTS {
                 isMctsTurn = !isMctsTurn; // 轮换玩家
             }
 
-            // 根据Nim游戏规则，最后一个移动的玩家输
-            if (!isMctsTurn) { // 如果是MCTS AI最后一个移动，则MCTS AI输，所以我们不增加 mctsWins
+            if (!isMctsTurn) { // 如果是MCTS AI最后一个移动，则MCTS AI输
                 // 这里不做操作
             } else {
                 mctsWins++;  // 如果不是 MCTS AI 最后一个动作，即它赢了比赛
             }
 
-            if (detailedDisplay) {
-                System.out.println("Game Over! " + (isMctsTurn ? "Simple AI" : "MCTS AI") + " takes the last and loses.");
-                detailedDisplay = false; // 第一局结束后关闭详细显示
-
-                System.out.println("----- Running additional games to calculate win probability -----");
-            }
+            detailedDisplay = false; // 只在第一局显示详细信息
         }
 
         System.out.println("MCTS AI won " + mctsWins + " out of " + totalGames + " games.");
         System.out.println("Win Probability: " + ((double) mctsWins / totalGames));
 
+        // 运行两个普通AI对弈1000次，查看先手的胜率
+        runSimpleAIGames(totalGames);
     }
 
-    // 简单AI随机选择一个合法移动
+    // 运行两个简单AI对弈的方法
+    private static void runSimpleAIGames(int totalGames) {
+        int firstPlayerWins = 0; // 统计先手AI胜利的次数
+        for (int gameCount = 0; gameCount < totalGames; gameCount++) {
+            Node<NimGame> rootNode = new NimGameNode(new NimGame().start(), null);
+            boolean isTurnOfFirstPlayer = true; // 先手AI始终先手
+
+            while (!rootNode.state().isTerminal()) {
+                rootNode = simpleAiMove(rootNode); // 每个AI轮流移动
+                isTurnOfFirstPlayer = !isTurnOfFirstPlayer; // 轮换玩家
+            }
+
+            if (!isTurnOfFirstPlayer) { // 如果游戏结束时轮到后手，那么先手是最后一个移动的
+                firstPlayerWins++;
+            }
+        }
+
+        System.out.println("First Player (Simple AI) won " + firstPlayerWins + " out of " + totalGames + " games.");
+        System.out.println("Win Probability for First Player (Simple AI): " + ((double) firstPlayerWins / totalGames));
+    }
+
+    // 简单AI随机选择一个合法移动的方法
     private static Node<NimGame> simpleAiMove(Node<NimGame> node) {
         List<Move<NimGame>> moves = (List<Move<NimGame>>) node.state().moves(node.state().player());
         if (moves.isEmpty()) {
@@ -199,6 +216,5 @@ public class MCTS {
             System.out.println("Pile " + (i + 1) + ": " + piles[i]);
         }
     }
-
 
 }
