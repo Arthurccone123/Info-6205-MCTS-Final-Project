@@ -13,9 +13,9 @@ public class NimGame implements Game<NimGame> {
     private NimGameState currentState;
 
     public NimGame() {
-        currentState = new NimGameState(new int[]{3, 6, 9});
+        // 初始设置为玩家 0 开始，并且堆的初始设置为 {3, 6, 9}
+        currentState = new NimGameState(new int[]{3, 6, 9}, 0);
     }
-
     @Override
     public State<NimGame> start() {
         return (State<NimGame>) currentState;

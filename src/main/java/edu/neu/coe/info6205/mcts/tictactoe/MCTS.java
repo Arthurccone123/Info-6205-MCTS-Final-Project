@@ -135,7 +135,7 @@ public class MCTS {
             }
 
             if (i == 0 && detailedPrint) {
-                System.out.println("----- Running morel games to calculate total win probability -----");
+                System.out.println("----- Running additional games to calculate win probability -----");
                 detailedPrint = false; // Only print details for the first game
             }
 

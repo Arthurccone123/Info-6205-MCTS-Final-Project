@@ -2,31 +2,21 @@ package edu.neu.coe.info6205.mcts.nimgame;
 
 import edu.neu.coe.info6205.mcts.core.State;
 import edu.neu.coe.info6205.mcts.core.Move;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 public class NimGameState implements State<NimGame> {
 
     private final int[] piles;
     private final Random random = new Random();
+    private int currentPlayer;
 
-    private int currentPlayer; // 添加一个字段来跟踪当前玩家
-
-    public NimGameState(int[] piles) {
+    public NimGameState(int[] piles, int currentPlayer) {
         this.piles = piles.clone();
-        this.currentPlayer = 0; // 假设玩家0开始游戏
+        this.currentPlayer = currentPlayer;
     }
 
     public int getCurrentPlayer() {
         return currentPlayer;
-    }
-
-    @Override
-    public NimGame game() {
-        return new NimGame();
     }
 
     @Override
@@ -36,7 +26,7 @@ public class NimGameState implements State<NimGame> {
                 return false;
             }
         }
-        return true;
+        return true;  // No pieces left to move
     }
 
     @Override
@@ -44,7 +34,7 @@ public class NimGameState implements State<NimGame> {
         List<Move<NimGame>> moves = new ArrayList<>();
         for (int i = 0; i < piles.length; i++) {
             for (int numToRemove = 1; numToRemove <= piles[i]; numToRemove++) {
-                moves.add((Move<NimGame>) new NimGameMove(i, numToRemove));
+                moves.add(new NimGameMove(i, numToRemove));
             }
         }
         return moves;
@@ -55,21 +45,24 @@ public class NimGameState implements State<NimGame> {
         int[] newPiles = piles.clone();
         NimGameMove nimMove = (NimGameMove) move;
         newPiles[nimMove.getPileIndex()] -= nimMove.getNumberOfPieces();
-        return new NimGameState(newPiles);
+        int nextPlayer = 1 - currentPlayer;
+        return new NimGameState(newPiles, nextPlayer);
     }
 
     @Override
     public int player() {
-        return 1;
+        return currentPlayer;
     }
 
     @Override
     public Optional<Integer> winner() {
         if (isTerminal()) {
-            return Optional.of(1 - player());
+
+            return Optional.of(1 - currentPlayer);
         }
         return Optional.empty();
     }
+
 
     @Override
     public Random random() {
@@ -78,5 +71,10 @@ public class NimGameState implements State<NimGame> {
 
     public int[] getPiles() {
         return piles.clone();
+    }
+
+    @Override
+    public NimGame game() {
+        return new NimGame();
     }
 }
