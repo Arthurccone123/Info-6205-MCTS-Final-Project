@@ -72,6 +72,7 @@ public class MCTS {
         while (!currentNode.state().isTerminal()) {
             List<Move<NimGame>> possibleMoves = heuristicMoveSelection(currentNode.state());
             if (possibleMoves.isEmpty()) {
+
                 possibleMoves = (List<Move<NimGame>>) currentNode.state().moves(currentNode.state().player());
             }
             Move<NimGame> selectedMove = possibleMoves.get(new Random().nextInt(possibleMoves.size()));
@@ -81,9 +82,9 @@ public class MCTS {
     }
 
 
-
     private void makeStrategicMove(State<NimGame> state, Node<NimGame> currentNode) {
         int[] piles = ((NimGameState)state).getPiles();
+
         if (piles[0] == 0 && piles[1] == piles[2] && piles[1] > 0) {
 
             State<NimGame> newState = state.next(new NimGameMove(1, piles[1]));
@@ -100,6 +101,7 @@ public class MCTS {
             }
         }
     }
+
 
     private List<Move<NimGame>> findStrategicMoves(int[] piles) {
         List<Move<NimGame>> bestMoves = new ArrayList<>();
@@ -206,7 +208,6 @@ public class MCTS {
             currentPlayer = 1 - currentPlayer;
 
             if (game.isGameOver()) {
-                // 使用 currentPlayer 变量来跟踪当前是谁的回合
                 int losingPlayer = game.getCurrentState().getCurrentPlayer();
                 System.out.println("Game Over! Player " + currentPlayer + " win.");
                 break;

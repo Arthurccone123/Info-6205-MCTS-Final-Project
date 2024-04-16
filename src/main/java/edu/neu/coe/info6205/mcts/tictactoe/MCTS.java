@@ -109,24 +109,55 @@ public class MCTS {
     }
 
     public static void main(String[] args) {
-        TicTacToe game = new TicTacToe();
-        Node<TicTacToe> currentNode = new TicTacToeNode(game.start(), null);
-        MCTS mcts = new MCTS(currentNode);
+        int winCountAI = 0;
+        int winCountRandom = 0;
+        int numberOfGames = 1000;
+        boolean detailedPrint = true; // Set to true for a detailed print of the first game
 
-        while (!currentNode.state().isTerminal()) {
-            currentNode = mcts.runMCTS(1000);
-            System.out.println("Current Board State:");
-            System.out.println(currentNode.state());
-            System.out.println("Win Probability: " + currentNode.wins() / (double) currentNode.playouts());
+        for (int i = 0; i < numberOfGames; i++) {
+            TicTacToe game = new TicTacToe();
+            Node<TicTacToe> currentNode = new TicTacToeNode(game.start(), null);
+            MCTS mcts = new MCTS(currentNode);
 
-            mcts = new MCTS(currentNode);  // Reset the MCTS with the new root
+            // MCTS介入的游戏
+            while (!currentNode.state().isTerminal()) {
+                currentNode = mcts.runMCTS(1000);
+                if (i == 0 && detailedPrint) {
+                    System.out.println("Current Board State:");
+                    System.out.println(currentNode.state());
+                }
+                mcts = new MCTS(currentNode);  // Reset the MCTS with the new root
+            }
+
+            Optional<Integer> winner = currentNode.state().winner();
+            if (winner.isPresent() && winner.get() == 1) {  // Assuming player 1 (X) is the AI
+                winCountAI++;
+            }
+
+            if (i == 0 && detailedPrint) {
+                System.out.println("----- Running morel games to calculate total win probability -----");
+                detailedPrint = false; // Only print details for the first game
+            }
+
+            // 随机对弈游戏
+            game = new TicTacToe();
+            currentNode = new TicTacToeNode(game.start(), null);
+            while (!currentNode.state().isTerminal()) {
+                List<Move<TicTacToe>> moves = new ArrayList<>(currentNode.state().moves(currentNode.state().player()));
+                Move<TicTacToe> randomMove = moves.get(new Random().nextInt(moves.size()));
+                currentNode = new TicTacToeNode(currentNode.state().next(randomMove), currentNode);
+            }
+
+            winner = currentNode.state().winner();
+            if (winner.isPresent() && winner.get() == 1) {  // Assuming player 1 (X) is the "random player"
+                winCountRandom++;
+            }
         }
 
-        Optional<Integer> winner = currentNode.state().winner();
-        if (winner.isPresent()) {
-            System.out.println("Game Over. Winner: " + (winner.get() == 1 ? "X" : "O"));
-        } else {
-            System.out.println("Game Over. It's a draw.");
-        }
+        double winProbabilityAI = (double) winCountAI / numberOfGames;
+        double winProbabilityRandom = (double) winCountRandom / numberOfGames;
+        System.out.println("AI (Player X) with MCTS won " + winCountAI + " out of " + numberOfGames + " games. Win Probability: " + winProbabilityAI);
+        System.out.println("Random (Player X) without MCTS won " + winCountRandom + " out of " + numberOfGames + " games. Win Probability: " + winProbabilityRandom);
     }
+
 }
