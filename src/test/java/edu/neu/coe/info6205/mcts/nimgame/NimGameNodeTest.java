@@ -38,29 +38,24 @@ public class NimGameNodeTest {
 
     @Test
     public void testBackPropagate() {
-        // Initialize children nodes with specific game states
-        NimGameState childState1 = new NimGameState(new int[]{3, 2, 3});
-        NimGameState childState2 = new NimGameState(new int[]{3, 3, 2});
+        // Step 1: Set up a simple tree for the test with a clear path to simulate.
+        NimGameState childState = new NimGameState(new int[]{2, 3, 3}); // Create a child state
+        NimGameNode childNode = new NimGameNode(childState, node); // Create a child node with the parent being `node`
+        node.children().add(childNode); // Add the child node to the parent's children
 
-        // Create nodes for these children states
-        NimGameNode childNode1 = new NimGameNode(childState1, node);
-        NimGameNode childNode2 = new NimGameNode(childState2, node);
+        // Step 2 & 3: Simulate a game outcome where the child node is the end state and the result is a win.
+        int simulatedResult = 1; // Assuming player 1 is the winner in this simulation
 
-        // Add children nodes to parent node
-        node.addChild(childNode1.state()); // Pass State<NimGame>, not NimGameNode
-        node.addChild(childNode2.state()); // Pass State<NimGame>, not NimGameNode
+        // Step 4: Backpropagate the result from the child node to the root node.
+        childNode.incrementPlayouts(); // Simulate that the child node was part of a play
+        if (simulatedResult == childState.player()) {
+            childNode.addWins(1); // Simulate a win for the child node
+        }
+        node.backPropagate(); // Now call backPropagate on the parent node to update its stats
 
-        // Simulate winning for the children
-        childNode1.incrementPlayouts();
-        childNode1.addWins(1);
-
-        childNode2.incrementPlayouts();
-        childNode2.addWins(1);
-
-        // Backpropagate should sum wins and playouts from children
-        node.backPropagate();
-        assertEquals(0, node.wins());    //这个两个预期是2
-        assertEquals(0, node.playouts());
+        // Step 5: Assert that the playouts and wins have been updated correctly.
+        assertEquals(1, node.playouts()); // The parent node should have 1 playout now
+        assertEquals(simulatedResult == initialState.player() ? 1 : 0, node.wins()); // The parent node should have 1 win if it represents the winner
     }
 
 // Add more tests as needed to cover all aspects of your
