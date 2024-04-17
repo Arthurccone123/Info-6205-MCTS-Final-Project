@@ -16,7 +16,7 @@ public class TicTacToeTest {
     @Test
     public void runGame() {
         long seed = 0L;
-        TicTacToe target = new TicTacToe(seed); // games run here will all be deterministic.
+        TicTacToe target = new TicTacToe(seed);
         State<TicTacToe> state = target.runGame();
         Optional<Integer> winner = state.winner();
         if (winner.isPresent()) assertEquals(Integer.valueOf(TicTacToe.X), winner.get());

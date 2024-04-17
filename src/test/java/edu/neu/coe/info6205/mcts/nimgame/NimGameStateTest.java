@@ -37,7 +37,7 @@ public class NimGameStateTest {
 
     @Test
     public void testNextState() {
-        Move<NimGame> move = new NimGameMove(0, 2); // Take 2 from pile 0
+        Move<NimGame> move = new NimGameMove(0, 2);
         State<NimGame> nextState = state.next(move);
         assertNotNull(nextState, "Next state should not be null.");
         assertArrayEquals(new int[]{1, 4, 5}, ((NimGameState) nextState).getPiles(), "Piles should be updated correctly.");
@@ -45,7 +45,7 @@ public class NimGameStateTest {
 
     @Test
     public void testWinner() {
-        state = new NimGameState(new int[]{0, 0, 0}, 0); // Assuming last move was made by player 1
+        state = new NimGameState(new int[]{0, 0, 0}, 0);
         assertTrue(state.winner().isPresent(), "Winner should be present when the game ends.");
         assertEquals(1, state.winner().get(), "Player 1 should be the winner if last move made by player 0 in a terminal state.");
     }

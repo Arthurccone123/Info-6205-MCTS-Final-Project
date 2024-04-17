@@ -15,6 +15,7 @@ public class MCTS {
         this.root = root;
     }
 
+    // Runs the MCTS algorithm for a specified number of iterations
     public Node<TicTacToe> runMCTS(int iterations) {
         for (int i = 0; i < iterations; i++) {
             Node<TicTacToe> selectedNode = select(root);
@@ -27,6 +28,7 @@ public class MCTS {
         return bestChild(root);
     }
 
+    // Selects a node based on the UCT value if fully expanded, else returns current node for expansion
     Node<TicTacToe> select(Node<TicTacToe> node) {
         while (!node.isLeaf()) {
             if (isFullyExpanded(node)) {
@@ -38,16 +40,19 @@ public class MCTS {
         return node;
     }
 
+    // Checks if all possible moves from a node have been expanded into child nodes
     private boolean isFullyExpanded(Node<TicTacToe> node) {
         return node.children().size() >= node.state().moves(node.state().player()).size();
     }
 
+    // Selects the child node with the highest UCT value
     private Node<TicTacToe> bestUCT(Node<TicTacToe> node) {
         return node.children().stream()
                 .max(Comparator.comparing(c -> uctValue(node, c)))
                 .orElseThrow(() -> new IllegalStateException("No children nodes found"));
     }
 
+    // Calculates the Upper Confidence Bound for Trees value
     private double uctValue(Node<TicTacToe> parent, Node<TicTacToe> child) {
         int totalVisits = parent.playouts();
         int winScore = child.wins();
@@ -56,6 +61,7 @@ public class MCTS {
         return (winScore / (double) numVisits) + EXPLORATION_CONSTANT * Math.sqrt(Math.log(totalVisits) / numVisits);
     }
 
+    // Expands the tree by adding a new child node created from a selected move
     Node<TicTacToe> expand(Node<TicTacToe> node) {
         List<Move<TicTacToe>> moves = new ArrayList<>(node.state().moves(node.state().player()));
         Move<TicTacToe> selectedMove = selectStrategicMove(moves, node.state());
@@ -65,22 +71,21 @@ public class MCTS {
         return newNode;
     }
 
+    // Selects the most promising move based on a simple heuristic
     private Move<TicTacToe> selectStrategicMove(List<Move<TicTacToe>> moves, State<TicTacToe> state) {
-
-
         return moves.stream().max(Comparator.comparing(move -> evaluateMovePotential(move, state))).orElse(null);
     }
 
+    // Evaluates the potential of a move by checking if it leads to a win or random value otherwise
     private double evaluateMovePotential(Move<TicTacToe> move, State<TicTacToe> state) {
-
         State<TicTacToe> resultState = state.next(move);
         if (resultState.winner().isPresent() && resultState.winner().get() == state.player()) {
             return Double.MAX_VALUE;
         }
-
         return Math.random();
     }
 
+    // Simulates random play to the end of the game and returns the winner
     int simulate(State<TicTacToe> state) {
         State<TicTacToe> tempState = state;
         while (!tempState.isTerminal()) {
@@ -91,6 +96,7 @@ public class MCTS {
         return tempState.winner().orElse(-1);
     }
 
+    // Back-propagates the simulation results to adjust scores and playout counts
     void backPropagate(Node<TicTacToe> node, int result) {
         Node<TicTacToe> tempNode = node;
         while (tempNode != null) {
@@ -102,6 +108,7 @@ public class MCTS {
         }
     }
 
+    // Selects the child node with the highest number of wins
     private Node<TicTacToe> bestChild(Node<TicTacToe> node) {
         return node.children().stream()
                 .max(Comparator.comparing(Node::wins))
@@ -112,34 +119,34 @@ public class MCTS {
         int winCountAI = 0;
         int winCountRandom = 0;
         int numberOfGames = 1000;
-        boolean detailedPrint = true; // Set to true for a detailed print of the first game
+        boolean detailedPrint = true;
 
         for (int i = 0; i < numberOfGames; i++) {
             TicTacToe game = new TicTacToe();
             Node<TicTacToe> currentNode = new TicTacToeNode(game.start(), null);
             MCTS mcts = new MCTS(currentNode);
 
-            // MCTS介入的游戏
+            // Games involving MCTS intervention
             while (!currentNode.state().isTerminal()) {
                 currentNode = mcts.runMCTS(1000);
                 if (i == 0 && detailedPrint) {
                     System.out.println("Current Board State:");
                     System.out.println(currentNode.state());
                 }
-                mcts = new MCTS(currentNode);  // Reset the MCTS with the new root
+                mcts = new MCTS(currentNode);
             }
 
             Optional<Integer> winner = currentNode.state().winner();
-            if (winner.isPresent() && winner.get() == 1) {  // Assuming player 1 (X) is the AI
+            if (winner.isPresent() && winner.get() == 1) {
                 winCountAI++;
             }
 
             if (i == 0 && detailedPrint) {
                 System.out.println("----- Running additional games to calculate win probability -----");
-                detailedPrint = false; // Only print details for the first game
+                detailedPrint = false;
             }
 
-            // 随机对弈游戏
+            // Random play games
             game = new TicTacToe();
             currentNode = new TicTacToeNode(game.start(), null);
             while (!currentNode.state().isTerminal()) {
@@ -149,7 +156,7 @@ public class MCTS {
             }
 
             winner = currentNode.state().winner();
-            if (winner.isPresent() && winner.get() == 1) {  // Assuming player 1 (X) is the "random player"
+            if (winner.isPresent() && winner.get() == 1) {
                 winCountRandom++;
             }
         }
@@ -159,5 +166,4 @@ public class MCTS {
         System.out.println("AI (Player X) with MCTS won " + winCountAI + " out of " + numberOfGames + " games. Win Probability: " + winProbabilityAI);
         System.out.println("Random (Player X) without MCTS won " + winCountRandom + " out of " + numberOfGames + " games. Win Probability: " + winProbabilityRandom);
     }
-
 }

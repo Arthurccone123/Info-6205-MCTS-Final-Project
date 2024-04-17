@@ -13,8 +13,8 @@ public class MCTSTest {
 
     @Before
     public void setUp() {
-        game = new TicTacToe();  // Assuming your TicTacToe has a default constructor setting up the game
-        rootNode = new TicTacToeNode(game.start(), null);  // Start the game state and no parent
+        game = new TicTacToe();
+        rootNode = new TicTacToeNode(game.start(), null);
         mcts = new MCTS(rootNode);
     }
 

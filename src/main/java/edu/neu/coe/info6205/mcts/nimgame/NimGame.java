@@ -5,20 +5,19 @@ import edu.neu.coe.info6205.mcts.core.State;
 import edu.neu.coe.info6205.mcts.nimgame.NimGameMove;
 import edu.neu.coe.info6205.mcts.nimgame.NimGameState;
 
-
-
 import java.util.Scanner;
 
 public class NimGame implements Game<NimGame> {
     private NimGameState currentState;
 
     public NimGame() {
-        // 初始设置为玩家 0 开始，并且堆的初始设置为 {3, 6, 9}
+        // Initialize the game with Player 0 starting and piles set to {3, 6, 9}
         currentState = new NimGameState(new int[]{3, 6, 9}, 0);
     }
+
     @Override
     public State<NimGame> start() {
-        return (State<NimGame>) currentState;
+        return currentState;
     }
 
     @Override
@@ -32,12 +31,11 @@ public class NimGame implements Game<NimGame> {
             throw new IllegalArgumentException("You must remove at least one piece.");
         }
         if (piles[move.getPileIndex()] >= move.getNumberOfPieces()) {
-            currentState = (NimGameState) currentState.next(move);
+            currentState = currentState.next(move);
         } else {
             throw new IllegalArgumentException("Cannot remove more pieces than are present in the pile.");
         }
     }
-
 
     public boolean isGameOver() {
         return currentState.isTerminal();
@@ -82,5 +80,4 @@ public class NimGame implements Game<NimGame> {
         }
         scanner.close();
     }
-
 }

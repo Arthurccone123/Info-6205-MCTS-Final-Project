@@ -9,8 +9,8 @@ public class NimGameNode implements Node<NimGame> {
     private final State<NimGame> state;
     private final Node<NimGame> parent;
     private final Collection<Node<NimGame>> children = new ArrayList<>();
-    private int wins;
-    private int playouts;
+    private int wins;        // Number of wins accumulated in this node
+    private int playouts;    // Total number of playouts from this node
 
     public NimGameNode(State<NimGame> state, Node<NimGame> parent) {
         this.state = state;
@@ -19,6 +19,7 @@ public class NimGameNode implements Node<NimGame> {
 
     @Override
     public boolean isLeaf() {
+        // Determines if the node is a leaf node
         return state.isTerminal();
     }
 
@@ -29,7 +30,7 @@ public class NimGameNode implements Node<NimGame> {
 
     @Override
     public boolean white() {
-        // You might need to adjust this based on how you define players
+        // Determines if the current player is the opening player
         return state.player() == state.game().opener();
     }
 
@@ -40,11 +41,13 @@ public class NimGameNode implements Node<NimGame> {
 
     @Override
     public void addChild(State<NimGame> childState) {
+        // Adds a child to this node based on the provided state
         children.add(new NimGameNode(childState, this));
     }
 
     @Override
     public void backPropagate() {
+        // Update the playouts and wins based on the children's statistics
         playouts = children.stream().mapToInt(Node::playouts).sum();
         wins = children.stream().mapToInt(Node::wins).sum();
     }
@@ -66,6 +69,7 @@ public class NimGameNode implements Node<NimGame> {
 
     @Override
     public void addWins(int wins) {
+        // Adds the specified number of wins to this node's total
         this.wins += wins;
     }
 

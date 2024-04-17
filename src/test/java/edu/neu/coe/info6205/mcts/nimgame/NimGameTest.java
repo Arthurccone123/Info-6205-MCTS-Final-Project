@@ -22,9 +22,9 @@ public class NimGameTest {
     @Test
     public void testIsGameOver_returnsTrueWhenGameIsOver() {
         // Play valid moves until game is over
-        game.playMove(new NimGameMove(0, 3)); // Remove all from pile 1
-        game.playMove(new NimGameMove(1, 6)); // Remove all from pile 2
-        game.playMove(new NimGameMove(2, 9)); // Remove all from pile 3
+        game.playMove(new NimGameMove(0, 3));
+        game.playMove(new NimGameMove(1, 6));
+        game.playMove(new NimGameMove(2, 9));
         assertTrue(game.isGameOver());
     }
 
@@ -47,5 +47,5 @@ public class NimGameTest {
         assertArrayEquals(new int[]{2, 6, 9}, game.getCurrentState().getPiles());
     }
 
-    // More tests can be added to cover the complete functionality
+
 }

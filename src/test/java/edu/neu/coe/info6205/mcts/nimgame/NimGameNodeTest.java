@@ -1,9 +1,6 @@
 package edu.neu.coe.info6205.mcts.nimgame;
 
 import edu.neu.coe.info6205.mcts.core.State;
-import edu.neu.coe.info6205.mcts.nimgame.NimGame;
-import edu.neu.coe.info6205.mcts.nimgame.NimGameMove;
-import edu.neu.coe.info6205.mcts.nimgame.NimGameNode;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -14,15 +11,13 @@ public class NimGameNodeTest {
 
     @Before
     public void setup() {
-        // Assuming NimGame and its state can be initialized like this
         NimGame game = new NimGame();
-        initialState = game.start();  // You need to define this method or adjust according to your implementation
+        initialState = game.start();
         node = new NimGameNode(initialState, null);
     }
 
     @Test
     public void testInitialNodeIsLeaf() {
-        // Assuming that the start state is not terminal
         assertFalse(node.isLeaf());
     }
 

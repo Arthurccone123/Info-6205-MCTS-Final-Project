@@ -4,7 +4,7 @@ import edu.neu.coe.info6205.mcts.core.Move;
 
 public class NimGameMove implements Move<NimGame> {
     private final int pileIndex;
-    private final int numberOfPieces;  // 移除的石子数
+    private final int numberOfPieces;  // Number of stones to be removed
 
     public NimGameMove(int pileIndex, int numberOfPieces) {
         this.pileIndex = pileIndex;
@@ -19,13 +19,14 @@ public class NimGameMove implements Move<NimGame> {
         return numberOfPieces;
     }
 
-    // 获取这次移动减少的石子数
+    // Gets the number of stones reduced by this move
     public int getPileReduction() {
-        return numberOfPieces;  // 直接返回移除的石子数
+        return numberOfPieces;
     }
 
     @Override
     public int player() {
-        return 1;  // 假设这里总是返回1，需要根据你的游戏逻辑调整
+        // Identifies the player who made the move.
+        return 1;
     }
 }
