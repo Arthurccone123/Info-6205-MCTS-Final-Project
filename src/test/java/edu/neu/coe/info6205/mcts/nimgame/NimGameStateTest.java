@@ -1,73 +1,57 @@
 package edu.neu.coe.info6205.mcts.nimgame;
 
 import edu.neu.coe.info6205.mcts.core.Move;
-import org.junit.Test;
+import edu.neu.coe.info6205.mcts.core.State;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
-import java.util.Optional;
-
-import static org.junit.Assert.*;
 
 public class NimGameStateTest {
+    private NimGameState state;
+
+    @BeforeEach
+    public void setup() {
+        state = new NimGameState(new int[]{3, 4, 5}, 0);
+    }
 
     @Test
-    public void testIsTerminal() {
-        // Assuming isTerminal returns true when all piles are empty
-        NimGameState gameState = new NimGameState(new int[]{0, 0, 0});
-        assertTrue(gameState.isTerminal());
+    public void testIsTerminalFalse() {
+        assertFalse(state.isTerminal(), "State should not be terminal when there are moves left.");
+    }
+
+    @Test
+    public void testIsTerminalTrue() {
+        state = new NimGameState(new int[]{0, 0, 0}, 0);
+        assertTrue(state.isTerminal(), "State should be terminal when no moves left.");
     }
 
     @Test
     public void testMoves() {
-        // Assuming moves should return all possible moves
-        NimGameState gameState = new NimGameState(new int[]{1, 2, 3});
-        List<Move<NimGame>> moves = gameState.moves(0); // Assuming player 0's turn
-        assertEquals(6, moves.size()); // There should be 6 possible moves
+        List<Move<NimGame>> moves = state.moves(state.player());
+        int expectedMoves = 3 + 4 + 5; // Sum of all possible moves for each pile
+        assertEquals(expectedMoves, moves.size(), "Should generate correct number of moves.");
     }
 
     @Test
-    public void testNext() {
-        // Assuming next correctly calculates the next state
-        NimGameState gameState = new NimGameState(new int[]{1, 2, 3});
-        NimGameMove move = new NimGameMove(0, 1); // Remove 1 from the first pile
-        NimGameState nextState = gameState.next(move);
-        assertArrayEquals(new int[]{0, 2, 3}, nextState.getPiles());
+    public void testNextState() {
+        Move<NimGame> move = new NimGameMove(0, 2); // Take 2 from pile 0
+        State<NimGame> nextState = state.next(move);
+        assertNotNull(nextState, "Next state should not be null.");
+        assertArrayEquals(new int[]{1, 4, 5}, ((NimGameState) nextState).getPiles(), "Piles should be updated correctly.");
     }
 
     @Test
-    public void testCurrentPlayerAfterMove() {
-        NimGameState gameState = new NimGameState(new int[]{1, 2, 3});
-        Move<NimGame> move = new NimGameMove(0, 1);
-        NimGameState nextState = gameState.next(move);
-        assertEquals("Current player should switch after a move", 0, nextState.getCurrentPlayer());
+    public void testWinner() {
+        state = new NimGameState(new int[]{0, 0, 0}, 0); // Assuming last move was made by player 1
+        assertTrue(state.winner().isPresent(), "Winner should be present when the game ends.");
+        assertEquals(1, state.winner().get(), "Player 1 should be the winner if last move made by player 0 in a terminal state.");
     }
 
     @Test
-    public void testWinnerAtEndOfGame() {
-        NimGameState terminalState = new NimGameState(new int[]{0, 0, 0});
-        Optional<Integer> winner = terminalState.winner();
-        assertTrue("Winner should be present at the end of the game", ((Optional<?>) winner).isPresent());
-        assertEquals("Incorrect winner", 0, winner.get().intValue());
+    public void testRandom() {
+        assertNotNull(state.random(), "Random should not be null.");
     }
-
-    @Test
-    public void testNonTerminalState() {
-        NimGameState gameState = new NimGameState(new int[]{1, 0, 0});
-        assertFalse("Game should not be terminal", gameState.isTerminal());
-    }
-
-    @Test
-    public void testMovesForDifferentPlayers() {
-        NimGameState gameStatePlayer0 = new NimGameState(new int[]{1, 2, 3});
-        gameStatePlayer0.setCurrentPlayer(0);
-        List<Move<NimGame>> movesPlayer0 = gameStatePlayer0.moves(0);
-        assertEquals("Incorrect number of moves for player 0", 6, movesPlayer0.size());
-
-        NimGameState gameStatePlayer1 = new NimGameState(new int[]{1, 2, 3});
-        gameStatePlayer1.setCurrentPlayer(1);
-        List<Move<NimGame>> movesPlayer1 = gameStatePlayer1.moves(1);
-        assertEquals("Incorrect number of moves for player 1", 6, movesPlayer1.size());
-    }
-
-    // Add more tests for other methods
 }

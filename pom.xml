@@ -86,11 +86,17 @@
             <version>7.8.1</version>
             <scope>test</scope>
         </dependency>
-<!--        <dependency>
-            <groupId>edu.neu.coe.mgen</groupId>
-            <artifactId>INFO6205</artifactId>
-            <version>1</version>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
         </dependency>
-        -->
+        <!--        <dependency>
+                    <groupId>edu.neu.coe.mgen</groupId>
+                    <artifactId>INFO6205</artifactId>
+                    <version>1</version>
+                </dependency>
+                -->
     </dependencies>
 </project>

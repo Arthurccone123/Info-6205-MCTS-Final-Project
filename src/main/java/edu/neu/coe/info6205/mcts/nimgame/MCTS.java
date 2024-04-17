@@ -44,40 +44,103 @@ public class MCTS {
     }
 
 
-    private double uctValue(Node<NimGame> node, int totalPlayouts) {
-        if (node.playouts() == 0) return Double.MAX_VALUE;
-        double winRate = node.wins() / (double) node.playouts();
-        double logTerm = Math.log(totalPlayouts) / node.playouts();
-        return winRate + EXPLORATION_CONSTANT * Math.sqrt(logTerm);
+    double uctValue(Node<NimGame> node, int totalPlayouts) {
+        double baseExploration = EXPLORATION_CONSTANT;
+        double dynamicFactor = Math.log((1 + node.playouts() + baseExploration) / baseExploration);
+        double winRate = (double) node.wins() / node.playouts();
+        double explorationValue = Math.sqrt(dynamicFactor * Math.log(totalPlayouts) / node.playouts());
+        return winRate + explorationValue;
     }
 
-    private Node<NimGame> expand(Node<NimGame> node) {
+
+
+
+    Node<NimGame> expand(Node<NimGame> node) {
+        // 检查是否可以执行策略性移动
         makeStrategicMove(node.state(), node);
-        List<Node<NimGame>> childrenList = new ArrayList<>(node.children());
-        if (!childrenList.isEmpty()) {
-            // If a strategic move was made
-            return childrenList.get(childrenList.size() - 1);
+        Collection<Node<NimGame>> children = node.children();
+        if (!children.isEmpty()) {
+            // 将Collection转换为List以使用get方法
+            List<Node<NimGame>> childrenList = new ArrayList<>(children);
+            return childrenList.get(childrenList.size() - 1);  // 返回最后一个新增的节点
         }
 
-        List<Move<NimGame>> moves = (List<Move<NimGame>>) node.state().moves(node.state().player());
-        Move<NimGame> selectedMove = moves.get(random.nextInt(moves.size()));
-        State<NimGame> newState = node.state().next(selectedMove);
-        Node<NimGame> newNode = new NimGameNode(newState, node);
-        node.children().add(newNode);
-        return newNode;
+        // 如果没有策略性移动产生新节点，随机选择一个移动进行扩展
+        List<Move<NimGame>> moves = new ArrayList<>(node.state().moves(node.state().player()));
+        if (!moves.isEmpty()) {
+            Move<NimGame> selectedMove = moves.get(random.nextInt(moves.size()));
+            State<NimGame> newState = node.state().next(selectedMove);
+            Node<NimGame> newNode = new NimGameNode(newState, node);
+            node.children().add(newNode);
+            return newNode;
+        }
+        return null;  // 当没有可用移动时应有的处理
     }
 
-    private int simulate(Node<NimGame> node) {
+    private Move<NimGame> selectBestMove(Node<NimGame> node, List<Move<NimGame>> moves) {
+        // 初始最佳评分设为最大值，以便找到最小的分数
+        int bestScore = Integer.MAX_VALUE;
+        Move<NimGame> bestMove = null;
+
+        // 遍历所有可能的移动
+        for (Move<NimGame> move : moves) {
+            // 应用移动并获取新状态
+            State<NimGame> newState = node.state().next(move);
+
+            // 评估新状态
+            int score = evaluateState((NimGameState)newState);
+
+            // 寻找具有最小评分的移动（即最接近赢的状态）
+            if (score < bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
+        }
+
+        return bestMove;
+    }
+
+    private int evaluateState(NimGameState state) {
+        int[] piles = state.getPiles();
+        int xorSum = 0;
+
+        for (int pile : piles) {
+            xorSum ^= pile;
+        }
+
+        return xorSum;  // 返回堆的 XOR 总和，理想情况是 0
+    }
+
+
+
+    int simulate(Node<NimGame> node) {
         Node<NimGame> currentNode = node;
         while (!currentNode.state().isTerminal()) {
-            List<Move<NimGame>> possibleMoves = (List<Move<NimGame>>) currentNode.state().moves(currentNode.state().player());
-            if (!possibleMoves.isEmpty()) {
-                Move<NimGame> selectedMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+            List<Move<NimGame>> possibleMoves = heuristicMoves(currentNode);
+            Move<NimGame> selectedMove = possibleMoves.isEmpty() ? null : selectHeuristicMove(possibleMoves, currentNode);
+            if (selectedMove != null) {
                 currentNode = new NimGameNode(currentNode.state().next(selectedMove), currentNode.getParent());
             }
         }
-        return currentNode.state().winner().orElse(-1); // 返回赢家的标识
+        return currentNode.state().winner().orElse(-1);
     }
+
+
+
+    private Move<NimGame> selectHeuristicMove(List<Move<NimGame>> moves, Node<NimGame> node) {
+        // 优先选择可以最大减少堆中石子数的移动
+        moves.sort((m1, m2) -> Integer.compare(((NimGameMove)m2).getPileReduction(), ((NimGameMove)m1).getPileReduction()));
+        return moves.get(0);
+    }
+
+
+    private List<Move<NimGame>> heuristicMoves(Node<NimGame> node) {
+        // 这里可以加入更复杂的选择逻辑
+        List<Move<NimGame>> moves = new ArrayList<>((List<Move<NimGame>>) node.state().moves(node.state().player()));
+        Collections.shuffle(moves); // 这里可以替换为更复杂的启发式方法
+        return moves;
+    }
+
 
 
     private void makeStrategicMove(State<NimGame> state, Node<NimGame> currentNode) {
@@ -118,7 +181,7 @@ public class MCTS {
     }
 
 
-    private void backPropagate(Node<NimGame> node, int result) {
+    void backPropagate(Node<NimGame> node, int result) {
         Node<NimGame> currentNode = node;
         while (currentNode != null) {
             currentNode.incrementPlayouts();

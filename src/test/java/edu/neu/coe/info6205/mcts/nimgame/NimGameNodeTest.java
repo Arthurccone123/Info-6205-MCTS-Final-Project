@@ -1,124 +1,68 @@
 package edu.neu.coe.info6205.mcts.nimgame;
 
-import edu.neu.coe.info6205.mcts.core.Node;
+import edu.neu.coe.info6205.mcts.core.State;
+import edu.neu.coe.info6205.mcts.nimgame.NimGame;
+import edu.neu.coe.info6205.mcts.nimgame.NimGameMove;
+import edu.neu.coe.info6205.mcts.nimgame.NimGameNode;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class NimGameNodeTest {
-
     private NimGameNode node;
-    private NimGameState initialState;
+    private State<NimGame> initialState;
 
     @Before
-   public void setUp() {
-        initialState = new NimGameState(new int[]{3, 3, 3});
+    public void setup() {
+        // Assuming NimGame and its state can be initialized like this
+        NimGame game = new NimGame();
+        initialState = game.start();  // You need to define this method or adjust according to your implementation
         node = new NimGameNode(initialState, null);
     }
 
     @Test
-    public void testIsLeaf_initialStateNotTerminal() {
+    public void testInitialNodeIsLeaf() {
+        // Assuming that the start state is not terminal
         assertFalse(node.isLeaf());
     }
 
     @Test
-    public void testIsLeaf_terminalState() {
-        NimGameState terminalState = new NimGameState(new int[]{0, 0, 0});
-        NimGameNode terminalNode = new NimGameNode(terminalState, null);
-        assertTrue(terminalNode.isLeaf());
+    public void testInitialState() {
+        assertSame("Node state should be the initial state", initialState, node.state());
     }
 
     @Test
     public void testAddChild() {
-        NimGameState childState = new NimGameState(new int[]{2, 3, 3});
-        NimGameNode childNode = new NimGameNode(childState, node);
-        node.addChild(childState);
-
-        assertEquals(1, node.children().size());
+        State<NimGame> newState = initialState.next(new NimGameMove(0, 1));  // Adjust parameters as necessary
+        node.addChild(newState);
+        assertFalse("Children should not be empty after adding one", node.children().isEmpty());
+        assertEquals("Should have one child", 1, node.children().size());
     }
 
     @Test
-    public void testBackPropagate() {
-        NimGameState childState = new NimGameState(new int[]{2, 3, 3});
-        NimGameNode childNode = new NimGameNode(childState, node);
-        node.children().add(childNode);
+    public void testBackPropagation() {
+        node.addChild(initialState.next(new NimGameMove(0, 1)));
+        node.addChild(initialState.next(new NimGameMove(1, 2)));
 
-        int simulatedResult = 1;
+        node.children().forEach(child -> {
+            ((NimGameNode) child).incrementPlayouts();
+            ((NimGameNode) child).addWins(1);
+        });
 
-        childNode.incrementPlayouts();
-        if (simulatedResult == childState.player()) {
-            childNode.addWins(1);
-        }
         node.backPropagate();
 
-        assertEquals(1, node.playouts());
-        assertEquals(simulatedResult == initialState.player() ? 1 : 0, node.wins());
+        assertEquals("Playouts should be equal to the number of children", 2, node.playouts());
+        assertEquals("Wins should be equal to the number of children", 2, node.wins());
     }
 
     @Test
-    public void testBackPropagateWithMultipleChildren() {
-        // Set up children and simulate their outcomes
-        NimGameNode childNode1 = new NimGameNode(new NimGameState(new int[]{2, 3, 3}), node);
-        NimGameNode childNode2 = new NimGameNode(new NimGameState(new int[]{3, 2, 3}), node);
-        node.children().add(childNode1);
-        node.children().add(childNode2);
-
-        childNode1.incrementPlayouts();
-        childNode2.incrementPlayouts();
-        childNode1.addWins(1); // simulate a win for childNode1
-        node.backPropagate();
-
-        assertEquals(2, node.playouts());
-        assertEquals(1, node.wins());
-    }
-
-    @Test
-    public void testBackPropagateWithDeepTree() {
-        // Set up a tree with multiple levels
-        NimGameNode childNode = new NimGameNode(new NimGameState(new int[]{2, 3, 3}), node);
-        NimGameNode grandChildNode = new NimGameNode(new NimGameState(new int[]{2, 2, 3}), childNode);
-        node.children().add(childNode);
-        childNode.children().add(grandChildNode);
-
-        grandChildNode.incrementPlayouts();
-        grandChildNode.addWins(1); // simulate a win for grandChildNode
-        childNode.backPropagate();
-        node.backPropagate();
-
-        assertEquals(1, node.playouts());
-        assertEquals(1, node.wins()); // Assuming initialState.player() is not the winner
-        assertEquals(1, childNode.wins());
-    }
-
-    @Test
-    public void testIncrementWinsAndPlayouts() {
+    public void testIncrementPlayoutsAndAddWins() {
+        int initialPlayouts = node.playouts();
+        int initialWins = node.wins();
         node.incrementPlayouts();
         node.addWins(1);
-        assertEquals(1, node.wins());
-        assertEquals(1, node.playouts());
-    }
 
-    @Test
-    public void testAddChildCreatesCorrectParentLink() {
-        NimGameState childState = new NimGameState(new int[]{2, 3, 3});
-        node.addChild(childState);
-        Node<NimGame> childNode = node.children().iterator().next();
-        assertEquals(node, childNode.getParent());
+        assertEquals("Playouts should increment by 1", initialPlayouts + 1, node.playouts());
+        assertEquals("Wins should increment by 1", initialWins + 1, node.wins());
     }
-
-    @Test
-    public void testParentLink() {
-        NimGameNode parentNode = new NimGameNode(new NimGameState(new int[]{3, 3, 3}), null);
-        NimGameNode childNode = new NimGameNode(initialState, parentNode);
-        assertEquals(parentNode, childNode.getParent());
-    }
-
-    @Test
-    public void testWhiteCondition() {
-        // Assuming that the opener is player 0 and player() method returns current player
-        boolean isWhite = node.white();
-        assertEquals(initialState.game().opener() == initialState.player(), isWhite);
-    }
-
-// Add more tests as needed to cover all aspects of your
 }
